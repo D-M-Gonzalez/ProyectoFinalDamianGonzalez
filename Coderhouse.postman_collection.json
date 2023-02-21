@@ -13,10 +13,16 @@
 					"name": "CreateProduct",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\":0,\r\n    \"description\":\"Camiseta Paraguaya\",\r\n    \"cost\":2500,\r\n    \"sellingPrice\":3000,\r\n    \"stock\":5,\r\n    \"userId\":1\r\n}",
+							"raw": "{\r\n    \"description\":\"Ropa\",\r\n    \"sellingPrice\":11000,\r\n    \"stock\":11,\r\n    \"userId\":2\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -42,10 +48,16 @@
 					"name": "EditProduct",
 					"request": {
 						"method": "PUT",
-						"header": [],
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\":7,\r\n    \"description\":\"Camiseta Argentina\",\r\n    \"cost\":5500,\r\n    \"sellingPrice\":2500,\r\n    \"stock\":0,\r\n    \"userId\":1\r\n}",
+							"raw": "{\r\n    \"id\":0,\r\n    \"description\":\"Cafetera Negra\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -123,7 +135,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://localhost:7291/Product/GetProducts?order=costo",
+							"raw": "https://localhost:7291/Product/GetProducts",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -132,12 +144,6 @@
 							"path": [
 								"Product",
 								"GetProducts"
-							],
-							"query": [
-								{
-									"key": "order",
-									"value": "costo"
-								}
 							]
 						}
 					},
@@ -147,9 +153,15 @@
 					"name": "DeleteProduct",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
 						"url": {
-							"raw": "https://localhost:7291/Product/DeleteProduct?id=8",
+							"raw": "https://localhost:7291/Product/DeleteProduct?id=12",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -162,7 +174,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "8"
+									"value": "12"
 								}
 							]
 						}
@@ -181,7 +193,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\":0,\r\n    \"name\":\"Damian\",\r\n    \"surname\": \"Gonzalez\",\r\n    \"userName\": \"Siff\",\r\n    \"password\": \"asb\",\r\n    \"email\": \"asd@hotmail.com\"\r\n}",
+							"raw": "{\r\n    \"name\":\"Damian\",\r\n    \"surname\": \"Gonzalez\",\r\n    \"username\": \"DamianPosta\",\r\n    \"password\": \"asd\",\r\n    \"email\": \"asd@hotmail.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -207,10 +219,16 @@
 					"name": "EditUser",
 					"request": {
 						"method": "PUT",
-						"header": [],
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\":3,\r\n    \"name\":\"Damian\",\r\n    \"surname\": \"Gonzalez\",\r\n    \"userName\": \"Papepo\",\r\n    \"password\": \"asb\",\r\n    \"email\": \"asd@hotmail.com\"\r\n}",
+							"raw": "{\r\n    \"username\":\"DamianPosta\",\r\n    \"password\":\"321\",\r\n    \"email\": \"222@hotmail.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -250,7 +268,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://localhost:7291/User/GetUser?userId=3",
+							"raw": "https://localhost:7291/User/GetUser?userId=13",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -263,7 +281,7 @@
 							"query": [
 								{
 									"key": "userId",
-									"value": "3"
+									"value": "13"
 								}
 							]
 						}
@@ -288,7 +306,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://localhost:7291/User/GetUsers?order=nombre",
+							"raw": "https://localhost:7291/User/GetUsers?order=nombreusuario",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -301,7 +319,7 @@
 							"query": [
 								{
 									"key": "order",
-									"value": "nombre"
+									"value": "nombreusuario"
 								}
 							]
 						}
@@ -312,9 +330,15 @@
 					"name": "DeleteUser",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
 						"url": {
-							"raw": "https://localhost:7291/User/DeleteUser?id=3",
+							"raw": "https://localhost:7291/User/DeleteUser?id=13",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -327,8 +351,37 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "3"
+									"value": "13"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EditPassword",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"DamianPosta\",\r\n    \"newpassword\":\"123\",\r\n    \"password\":\"asd\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7291/User/EditPassword",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"User",
+								"EditPassword"
 							]
 						}
 					},
@@ -343,10 +396,16 @@
 					"name": "CreateSale",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 0,\r\n    \"userId\": 2,\r\n    \"saleComments\": \"Vendimos mucho\",\r\n    \"saleProducts\": [\r\n        {\r\n            \"ProductId\": 4,\r\n            \"SaleAmount\": 2\r\n        },\r\n        {\r\n            \"ProductId\": 1,\r\n            \"SaleAmount\": 3\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"userId\": 13,\r\n    \"saleComments\": \"Damian Vendio\",\r\n    \"saleProducts\": [\r\n        {\r\n            \"ProductId\": 25,\r\n            \"SaleAmount\": 15\r\n        },\r\n        {\r\n            \"ProductId\": 36,\r\n            \"SaleAmount\": 15\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -386,7 +445,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://localhost:7291/Sale/GetSale?saleId=1",
+							"raw": "https://localhost:7291/Sale/GetSale?saleId=8",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -399,7 +458,7 @@
 							"query": [
 								{
 									"key": "saleId",
-									"value": "1"
+									"value": "8"
 								}
 							]
 						}
@@ -439,6 +498,207 @@
 									"key": "order",
 									"value": "cantidad"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EditSale",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 8,\r\n    \"userId\": 13,\r\n    \"saleComments\": \"Damian No Vendio\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7291/Sale/EditSale",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"Sale",
+								"EditSale"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteSale",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:7291/Sale/DeleteSale?id=8",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"Sale",
+								"DeleteSale"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "8"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ProductSale",
+			"item": [
+				{
+					"name": "GetProductSales",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\":0,\r\n    \"description\":\"Camiseta Argentina\",\r\n    \"cost\":1500,\r\n    \"sellingPrice\":2500,\r\n    \"stock\":0,\r\n    \"userId\":1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7291/ProductSale/GetProductSales?order=costo",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"ProductSale",
+								"GetProductSales"
+							],
+							"query": [
+								{
+									"key": "order",
+									"value": "costo"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetProductSale",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7291/ProductSale/GetProductSale?productSaleId=7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"ProductSale",
+								"GetProductSale"
+							],
+							"query": [
+								{
+									"key": "productSaleId",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteProductSale",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "token",
+								"value": "hyjo",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:7291/ProductSale/DeleteProductSale?id=8",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"ProductSale",
+								"DeleteProductSale"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "8"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"DamianPosta\",\r\n    \"password\": \"123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7291/Login",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7291",
+							"path": [
+								"Login"
 							]
 						}
 					},
