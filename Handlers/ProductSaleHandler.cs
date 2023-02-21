@@ -1,87 +1,91 @@
 ﻿using System.Data.SqlClient;
 using System.Data;
+using DamianGonzalezCSharp.Models;
 
-namespace DamianGonzalesCSharp.Handlers
+namespace DamianGonzalezCSharp.Handlers
 {
     public class ProductSaleHandler : SqlHandler
     {
-        public Boolean HandleGetProductSales(DataSet ds, Int32 productSaleId, Int32 saleId, string sLike, string order)
+        private static ParameterHandler handler = new ParameterHandler();
+        private Boolean result = false;
+        public Boolean HandleGetProductSales(DataSet ds, Int32 productSaleId)
+        {
+            return HandleGetProductSales(ds, productSaleId, IdColumns.productSale);
+        }
+        public Boolean HandleGetProductSales(DataSet ds, Int32 productSaleId, IdColumns idColumn)
         {
             SqlCommand cmd = new SqlCommand();
-            Boolean success = false;
+            handler.CreateParameter("id", SqlDbType.BigInt, productSaleId, cmd);
+            string sWhere = " where ";
 
-            if (productSaleId > 0 && saleId == 0)
+            switch (idColumn)
             {
-                var parameter = new SqlParameter();
-                parameter.ParameterName = "saleId";
-                parameter.SqlDbType = SqlDbType.BigInt;
-                parameter.Value = productSaleId;
-
-                cmd.CommandText = "select pv.Id, pv.Stock Cantidad, pv.IdProducto, pv.IdVenta, p.Descripciones, p.Costo, p.PrecioVenta, p.Stock from ProductoVendido pv inner join Producto p on p.id = pv.IdProducto where Id = @saleId";
-                cmd.Parameters.Add(parameter);
-
+                case IdColumns.sale:
+                    sWhere = sWhere + " pv.IdVenta = @id";
+                    break;
+                case IdColumns.product:
+                    sWhere = sWhere + " pv.IdProducto = @id";
+                    break;
+                default:
+                    sWhere = sWhere + " pv.Id = @id";
+                    break;
             }
-            if (saleId > 0 && productSaleId == 0)
-            {
-                var parameter = new SqlParameter();
-                parameter.ParameterName = "saleId";
-                parameter.SqlDbType = SqlDbType.BigInt;
-                parameter.Value = saleId;
 
-                cmd.CommandText = "select pv.Id, pv.Stock Cantidad, pv.IdProducto, pv.IdVenta, p.Descripciones, p.Costo, p.PrecioVenta, p.Stock from ProductoVendido pv inner join Producto p on p.id = pv.IdProducto where IdVenta = @saleId";
-                cmd.Parameters.Add(parameter);
+            cmd.CommandText = "select pv.Id, pv.Stock Cantidad, pv.IdProducto, pv.IdVenta, p.Descripciones, p.Costo, p.PrecioVenta, p.Stock from ProductoVendido pv inner join Producto p on p.id = pv.IdProducto" + sWhere;
+            result = GetCommand(ds, cmd);
 
-            }
-            else
+            return result;
+        }
+
+        public Boolean HandleGetProductSales(DataSet ds, string sLike, string order)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.CommandText = "select pv.Id, pv.Stock Cantidad, pv.IdProducto, pv.IdVenta, p.Descripciones, p.Costo, p.PrecioVenta, p.Stock from ProductoVendido pv inner join Producto p on p.id = pv.IdProducto ";
+
+            handler.CreateParameter("descrip", SqlDbType.Char, sLike, cmd, true);
+            if (sLike != "") cmd.CommandText = cmd.CommandText + " where p.Descripciones like @descrip";
+
+            if (order != "" && order != null)
             {
-                cmd.CommandText = "select pv.Id, pv.Stock Cantidad, pv.IdProducto, pv.IdVenta, p.Descripciones, p.Costo, p.PrecioVenta, p.Stock from ProductoVendido pv inner join Producto p on p.id = pv.IdProducto";
-                if (sLike != "" && sLike != null)
+                string sOrder = "";
+                switch (order)
                 {
-                    var parameter = new SqlParameter();
-                    parameter.ParameterName = "descrip";
-                    parameter.SqlDbType = SqlDbType.Char;
-                    parameter.Value = "%" + sLike + "%";
-
-                    cmd.CommandText = cmd.CommandText + " where Descripciones like @descrip";
-                    cmd.Parameters.Add(parameter);
+                    case "id":
+                        sOrder = "v.Id";
+                        break;
+                    case "cantidad":
+                        sOrder = "pv.Stock";
+                        break;
+                    case "stock":
+                        sOrder = "p.Stock";
+                        break;
+                    case "costo":
+                        sOrder = "p.Costo";
+                        break;
+                    case "precio":
+                        sOrder = "p.PrecioVenta";
+                        break;
+                    default:
+                        sOrder = "p.Descripciones";
+                        break;
                 }
 
-                if (order == null) order = "";
-                order = order.ToLower();
-
-                if (order != "" && order != null)
-                {
-                    string sOrder = "";
-                    switch (order)
-                    {
-                        case "id":
-                            sOrder = "v.Id";
-                            break;
-                        case "cantidad":
-                            sOrder = "pv.Stock";
-                            break;
-                        case "stock":
-                            sOrder = "p.Stock";
-                            break;
-                        case "costo":
-                            sOrder = "p.Costo";
-                            break;
-                        case "precio":
-                            sOrder = "p.PrecioVenta";
-                            break;
-                        default:
-                            sOrder = "p.Descripciones";
-                            break;
-                    }
-
-                    cmd.CommandText = cmd.CommandText + " order by " + sOrder;
-                }
-
+                cmd.CommandText = cmd.CommandText + " order by " + sOrder;
             }
+            result = GetCommand(ds, cmd);
 
-            success = GetCommand(ds, cmd);
+            return result;
+        }
 
-            return success;
+        public Boolean HandleDeleteProductSale(Int32 id)
+        {
+
+            SqlCommand deleteCommand = new SqlCommand("delete ProductoVendido where Id = @id");
+            handler.CreateParameter("id", SqlDbType.BigInt, id, deleteCommand);
+
+            result = GenericCommand(deleteCommand);
+
+            return result;
         }
     }
 }

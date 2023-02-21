@@ -31,3 +31,4 @@ C:\Users\DamiYBren\source\repos\DamianGonzalesCSharp\obj\Debug\net6.0\refint\Dam
 C:\Users\DamiYBren\source\repos\DamianGonzalesCSharp\obj\Debug\net6.0\DamianGonzalesCSharp.pdb
 C:\Users\DamiYBren\source\repos\DamianGonzalesCSharp\obj\Debug\net6.0\DamianGonzalesCSharp.genruntimeconfig.cache
 C:\Users\DamiYBren\source\repos\DamianGonzalesCSharp\obj\Debug\net6.0\ref\DamianGonzalesCSharp.dll
+C:\Users\DamiYBren\source\repos\DamianGonzalesCSharp\bin\Debug\net6.0\Coderhouse.postman_collection.json

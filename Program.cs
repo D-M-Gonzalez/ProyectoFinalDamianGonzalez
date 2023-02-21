@@ -1,13 +1,7 @@
-using DamianGonzalesCSharp.Handlers;
-using DamianGonzalezCSharp.Controller;
-using DamianGonzalezCSharp.Models;
-
 namespace DamianGonzalezCSharp
 {
     public class Program
     {
-
-        static public SqlHandler sqlHandler = new SqlHandler();
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);

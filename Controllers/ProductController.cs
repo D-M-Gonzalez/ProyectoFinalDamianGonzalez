@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlClient;
-using System.Data;
+﻿using System.Data;
 using DamianGonzalezCSharp.Models;
-using DamianGonzalezCSharp;
-using Microsoft.AspNetCore.Mvc;
-using DamianGonzalesCSharp.Models;
-using DamianGonzalesCSharp.Handlers;
+using DamianGonzalezCSharp.Handlers;
 using System.Net;
-using System.Runtime.Intrinsics.Arm;
+using DamianGonzalezCSharp.Validations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DamianGonzalezCSharp.Controller
 {
@@ -19,22 +11,22 @@ namespace DamianGonzalezCSharp.Controller
     [Route("[controller]")]
     public class ProductController : ControllerBase
     {
+        private static readonly ProductValidations validations = new();
+        private LoginHandler loginHandler = new LoginHandler();
+
         [HttpGet("GetProducts")]
-        public ProductResponse GetProducts(string? descrip, string? order)
+        public ProductResponse GetProducts(string? descrip = "", string? order = "")
         {
             List<Product> products = new List<Product>();
             DataSet dsProducts = new DataSet();
             ProductHandler productHandler = new ProductHandler();
-            ProductResponse response = new ProductResponse();
+            ProductResponse response = new ProductResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
 
-            if (productHandler.HandleGetProducts(dsProducts, 0, descrip, order))
+            if (productHandler.HandleGetProducts(dsProducts, descrip, order))
             {
                 if (dsProducts.Tables.Contains("DAT") && dsProducts.Tables["DAT"].Rows.Count > 0)
                 {
                     DataTable dtDAT = dsProducts.Tables["DAT"];
-                    response.Success = true;
-                    response.Message = "Successfull";
-                    response.StatusCode = HttpStatusCode.OK;
 
                     foreach (DataRow dr in dtDAT.Rows)
                     {
@@ -51,23 +43,16 @@ namespace DamianGonzalezCSharp.Controller
 
                     }
 
+                    response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
                     response.Products = products;
                 }
                 else
                 {
-                    response.Success = false;
-                    response.Message = "Can't obtain requested data";
-                    response.StatusCode = HttpStatusCode.Conflict;
+                    response.GenerateResponse(false, "Can't obtain requested data", HttpStatusCode.Conflict);
                 }
             }
-            else
-            {
-                response.Success = false;
-                response.Message = "Server not accessible";
-                response.StatusCode = HttpStatusCode.InternalServerError;
-            }
 
-
+            dsProducts.Dispose();
             return response;
         }
 
@@ -78,15 +63,12 @@ namespace DamianGonzalezCSharp.Controller
             List < Product > productList = new List<Product>();
             DataSet dsProduct = new DataSet();
             ProductHandler productHandler = new ProductHandler();
-            ProductResponse response = new ProductResponse();
+            ProductResponse response = new ProductResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
 
-            if (productHandler.HandleGetProducts(dsProduct, productId, "", ""))
+            if (productHandler.HandleGetProducts(dsProduct, productId))
             {
                 if (dsProduct.Tables.Contains("DAT") && dsProduct.Tables["DAT"].Rows.Count > 0)
                 {
-                    response.Success = true;
-                    response.Message = "Successfull";
-                    response.StatusCode = HttpStatusCode.OK;
                     DataRow dr = dsProduct.Tables["DAT"].Rows[0];
                     product.Id = Convert.ToInt32(dr["id"]);
                     if (dr["descripciones"] != DBNull.Value) product.Description = Convert.ToString(dr["Descripciones"]).Trim();
@@ -95,42 +77,40 @@ namespace DamianGonzalezCSharp.Controller
                     if (dr["stock"] != DBNull.Value) product.Stock = Convert.ToInt32(dr["stock"]);
                     if (dr["idusuario"] != DBNull.Value) product.UserId = Convert.ToInt32(dr["idusuario"]);
                     productList.Add(product);
+
+                    response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
                     response.Products = productList;
 
                 } else
                 {
-                    response.Success = false;
-                    response.Message = "Can't obtain requested data";
-                    response.StatusCode = HttpStatusCode.Conflict;
+                    response.GenerateResponse(false, "Product not found", HttpStatusCode.Conflict);
                 }
 
-            } else
-            {
-                response.Success = false;
-                response.Message = "Server not accessible";
-                response.StatusCode = HttpStatusCode.InternalServerError;
             }
 
+            dsProduct.Dispose();
             return response;
         }
 
         [HttpPost("CreateProduct")]
         public ProductResponse CreateProduct(Product data)
         {
-            ProductResponse response = new ProductResponse();
+            ProductResponse response = validations.ValidateCreation(data);
             ProductHandler productHandler = new ProductHandler();
 
-            if(productHandler.HandleProductData(data, true))
+            if (!loginHandler.HandleGetToken(Request.Headers))
             {
-                response.Success = true;
-                response.Message = "Product created successfully";
-                response.StatusCode = HttpStatusCode.OK;
-            } else
-            {
-                response.Message = "An error has ocurred when inserting the product";
-                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.GenerateResponse(false, "Unauthorized", HttpStatusCode.Unauthorized);
             }
-            
+            if (response.Success == true && productHandler.HandleCreateProduct(data))
+            {
+                response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
+            }
+            else if (response.Success == true)
+            {
+                response.GenerateResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
+            }
+
             return response;
         }
 
@@ -138,19 +118,21 @@ namespace DamianGonzalezCSharp.Controller
 
         public ProductResponse ModifyProduct(Product data)
         {
-            ProductResponse response = new ProductResponse();
+            ProductResponse response = validations.ValidateUpdate(data);
             ProductHandler productHandler = new ProductHandler();
 
-            if (data.Id != 0 && productHandler.HandleProductData(data, false))
+            if (!loginHandler.HandleGetToken(Request.Headers))
             {
-                response.Success = true;
-                response.Message = "Product modified successfully";
-                response.StatusCode = HttpStatusCode.OK;
+                response.GenerateResponse(false, "Unauthorized", HttpStatusCode.Unauthorized);
             }
-            else
+
+            if (response.Success == true && data.Id != 0 && productHandler.HandleUpdateProduct(data))
             {
-                response.Message = "An error has ocurred when editing the product";
-                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
+            } 
+            else if (response.Success == true)
+            {
+                response.GenerateResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
             }
 
             return response;
@@ -160,19 +142,21 @@ namespace DamianGonzalezCSharp.Controller
 
         public ProductResponse DeleteProduct(Int32 id)
         {
-            ProductResponse response = new ProductResponse();
+            ProductResponse response = validations.ValidateDelete(id);
             ProductHandler productHandler = new ProductHandler();
 
-            if (id != 0 && productHandler.HandleDeleteProduct(id))
+            if (!loginHandler.HandleGetToken(Request.Headers))
             {
-                response.Success = true;
-                response.Message = "Product deleted successfully";
-                response.StatusCode = HttpStatusCode.OK;
+                response.GenerateResponse(false, "Unauthorized", HttpStatusCode.Unauthorized);
             }
-            else
+
+            if (response.Success == true && productHandler.HandleDeleteProduct(id))
             {
-                response.Message = "An error has ocurred when deleting the product";
-                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
+            }
+            else if (response.Success == true)
+            {
+                response.GenerateResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
             }
 
             return response;

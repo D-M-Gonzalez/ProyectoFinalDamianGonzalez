@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "6cry8jXr/XQIZUZ0ElO1G0/QOJX1/jEf3mgZteQn+VmR7PanqBvwg9YE2dDrV/867BQaCfyIVitND5PFWbnGhA==",
+  "dgSpecHash": "VNzHSmKBtMPOtlQozB6NPejeWbMDTUBkcz1CddhEhKRs4eN9gZS0oQN+hVk6kbJ5SVurc0t0VBIKhHkK0QhZGQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\DamianGonzalesCSharp.csproj",
+  "projectFilePath": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\DamianGonzalezCSharp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\DamiYBren\\.nuget\\packages\\microsoft.extensions.apidescription.server\\3.0.0\\microsoft.extensions.apidescription.server.3.0.0.nupkg.sha512",
     "C:\\Users\\DamiYBren\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",

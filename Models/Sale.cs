@@ -1,9 +1,5 @@
-﻿using DamianGonzalesCSharp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.Net;
 
 namespace DamianGonzalezCSharp.Models
 {
@@ -29,5 +25,20 @@ namespace DamianGonzalezCSharp.Models
     public class SaleResponse : Response
     {
         public List<Sale>? Sales { get; set; }
+
+        public SaleResponse()
+        {
+            Success = true;
+            Message = "";
+            StatusCode = HttpStatusCode.OK;
+            Sales = null;
+        }
+        public SaleResponse(Boolean success, string message, HttpStatusCode statusCode)
+        {
+            Success = success;
+            Message = message;
+            StatusCode = statusCode;
+            Sales = null;
+        }
     }
 }

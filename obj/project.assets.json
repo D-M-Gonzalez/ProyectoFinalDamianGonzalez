@@ -688,9 +688,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\DamianGonzalesCSharp.csproj",
-      "projectName": "DamianGonzalesCSharp",
-      "projectPath": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\DamianGonzalesCSharp.csproj",
+      "projectUniqueName": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\DamianGonzalezCSharp.csproj",
+      "projectName": "DamianGonzalezCSharp",
+      "projectPath": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\DamianGonzalezCSharp.csproj",
       "packagesPath": "C:\\Users\\DamiYBren\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\DamiYBren\\source\\repos\\DamianGonzalesCSharp\\obj\\",
       "projectStyle": "PackageReference",

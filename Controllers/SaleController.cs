@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlClient;
-using System.Data;
+﻿using System.Data;
 using DamianGonzalezCSharp.Models;
-using DamianGonzalezCSharp;
 using Microsoft.AspNetCore.Mvc;
-using DamianGonzalesCSharp.Models;
-using DamianGonzalesCSharp.Handlers;
+using DamianGonzalezCSharp.Handlers;
 using System.Net;
-using System.Runtime.Intrinsics.Arm;
+using DamianGonzalezCSharp.Validations;
 
 namespace DamianGonzalezCSharp.Controller
 {
@@ -19,22 +11,22 @@ namespace DamianGonzalezCSharp.Controller
     [Route("[controller]")]
     public class SaleController : ControllerBase
     {
+        private static readonly SaleValidations validations = new();
+        private LoginHandler loginHandler = new LoginHandler();
+
         [HttpGet("GetSales")]
         public SaleResponse GetSales(string? descrip, string? order)
         {
             List<Sale> sales = new List<Sale>();
             DataSet dsSales = new DataSet();
             SaleHandler saleHandler = new SaleHandler();
-            SaleResponse response = new SaleResponse();
+            SaleResponse response = new SaleResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
 
-            if (saleHandler.HandleGetSales(dsSales, 0, descrip, order))
+            if (saleHandler.HandleGetSales(dsSales, descrip, order))
             {
                 if (dsSales.Tables.Contains("DAT") && dsSales.Tables["DAT"].Rows.Count > 0)
                 {
                     DataTable dtDAT = dsSales.Tables["DAT"];
-                    response.Success = true;
-                    response.Message = "Successfull";
-                    response.StatusCode = HttpStatusCode.OK;
 
                     foreach (DataRow dr in dtDAT.Rows)
                     {
@@ -46,7 +38,7 @@ namespace DamianGonzalezCSharp.Controller
                         if (dr["IdUsuario"] != DBNull.Value) sale.UserId = Convert.ToInt32(dr["IdUsuario"]);
                         if (dr["Comentarios"] != DBNull.Value) sale.SaleComments = Convert.ToString(dr["Comentarios"]).Trim();
 
-                        if (productSaleHandler.HandleGetProductSales(dsProductSale, 0, sale.Id, descrip, order))
+                        if (productSaleHandler.HandleGetProductSales(dsProductSale, sale.Id, IdColumns.sale))
                         {
                             if (dsProductSale.Tables.Contains("DAT") && dsProductSale.Tables["DAT"].Rows.Count > 0)
                             {
@@ -73,43 +65,34 @@ namespace DamianGonzalezCSharp.Controller
                         sales.Add(sale);
 
                     }
-
+                    response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
                     response.Sales = sales;
+                    
                 }
                 else
                 {
-                    response.Success = false;
-                    response.Message = "Can't obtain requested data";
-                    response.StatusCode = HttpStatusCode.Conflict;
+                    response.GenerateResponse(false, "Can't obtain requested data", HttpStatusCode.Conflict);
                 }
             }
-            else
-            {
-                response.Success = false;
-                response.Message = "Server not accessible";
-                response.StatusCode = HttpStatusCode.InternalServerError;
-            }
 
+            dsSales.Dispose();
             return response;
         }
 
         [HttpGet("GetSale")]
-        public Response GetSale(Int32 saleId)
+        public SaleResponse GetSale(Int32 saleId)
         {
             Sale sale = new Sale();
             List < Sale > saleList = new List<Sale>();
             DataSet dsSale = new DataSet();
             SaleHandler SaleHandler = new SaleHandler();
-            SaleResponse response = new SaleResponse();
+            SaleResponse response = new SaleResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
 
-            if (SaleHandler.HandleGetSales(dsSale, saleId, "", ""))
+            if (SaleHandler.HandleGetSales(dsSale, saleId))
             {
                 if (dsSale.Tables.Contains("DAT") && dsSale.Tables["DAT"].Rows.Count > 0)
                 {
                     DataTable dtDAT = dsSale.Tables["DAT"];
-                    response.Success = true;
-                    response.Message = "Successfull";
-                    response.StatusCode = HttpStatusCode.OK;
 
                     DataRow dr = dtDAT.Rows[0];
 
@@ -120,7 +103,7 @@ namespace DamianGonzalezCSharp.Controller
                         if (dr["IdUsuario"] != DBNull.Value) sale.UserId = Convert.ToInt32(dr["IdUsuario"]);
                         if (dr["Comentarios"] != DBNull.Value) sale.SaleComments = Convert.ToString(dr["Comentarios"]).Trim();
 
-                        if (productSaleHandler.HandleGetProductSales(dsProductSale, 0, sale.Id, "", ""))
+                        if (productSaleHandler.HandleGetProductSales(dsProductSale,sale.Id, IdColumns.sale))
                         {
                             if (dsProductSale.Tables.Contains("DAT") && dsProductSale.Tables["DAT"].Rows.Count > 0)
                             {
@@ -146,63 +129,63 @@ namespace DamianGonzalezCSharp.Controller
                         }
 
                     saleList.Add(sale);
-
+                    response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
                     response.Sales = saleList;
+                    
                 }
                 else
                 {
-                    response.Success = false;
-                    response.Message = "Can't obtain requested data";
-                    response.StatusCode = HttpStatusCode.Conflict;
+                    response.GenerateResponse(false, "Sale not found", HttpStatusCode.Conflict);
                 }
 
-            } else
-            {
-                response.Success = false;
-                response.Message = "Server not accessible";
-                response.StatusCode = HttpStatusCode.InternalServerError;
             }
 
+            dsSale.Dispose();
             return response;
         }
 
         [HttpPost("CreateSale")]
         public SaleResponse CreateSale(Sale data)
         {
-            SaleResponse response = new SaleResponse();
+            SaleResponse response = validations.ValidateCreation(data);
             SaleHandler SaleHandler = new SaleHandler();
 
-            if(SaleHandler.HandleSaleData(data, true))
+            if (!loginHandler.HandleGetToken(Request.Headers))
             {
-                response.Success = true;
-                response.Message = "Sale created successfully";
-                response.StatusCode = HttpStatusCode.OK;
-            } else
+                response.GenerateResponse(false, "Unauthorized", HttpStatusCode.Unauthorized);
+            }
+
+            if (response.Success == true && SaleHandler.HandleCreateSale(data))
             {
-                response.Message = "An error has ocurred when inserting the Sale";
-                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
+            }
+            else if (response.Success == true)
+            {
+                response.GenerateResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
             }
             
             return response;
         }
 
 
-        /*[HttpPut("EditSale")]
+        [HttpPut("EditSale")]
         public SaleResponse ModifySale(Sale data)
         {
-            SaleResponse response = new SaleResponse();
+            SaleResponse response = validations.ValidateUpdate(data);
             SaleHandler SaleHandler = new SaleHandler();
 
-            if (data.Id != 0 && SaleHandler.HandleSaleData(data, false))
+            if (!loginHandler.HandleGetToken(Request.Headers))
             {
-                response.Success = true;
-                response.Message = "Sale modified successfully";
-                response.StatusCode = HttpStatusCode.OK;
+                response.GenerateResponse(false, "Unauthorized", HttpStatusCode.Unauthorized);
             }
-            else
+
+            if (response.Success == true && data.Id != 0 && SaleHandler.HandleUpdateSale(data))
             {
-                response.Message = "An error has ocurred when editing the Sale";
-                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
+            }
+            else if (response.Success == true)
+            {
+                response.GenerateResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
             }
 
             return response;
@@ -212,22 +195,24 @@ namespace DamianGonzalezCSharp.Controller
 
         public SaleResponse DeleteSale(Int32 id)
         {
-            SaleResponse response = new SaleResponse();
+            SaleResponse response = validations.ValidateDelete(id);
             SaleHandler SaleHandler = new SaleHandler();
 
-            if (id != 0 && SaleHandler.HandleDeleteSale(id))
+            if (!loginHandler.HandleGetToken(Request.Headers))
             {
-                response.Success = true;
-                response.Message = "Sale deleted successfully";
-                response.StatusCode = HttpStatusCode.OK;
+                response.GenerateResponse(false, "Unauthorized", HttpStatusCode.Unauthorized);
             }
-            else
+
+            if (response.Success == true && SaleHandler.HandleDeleteSale(id))
             {
-                response.Message = "An error has ocurred when deleting the Sale";
-                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.GenerateResponse(true, "Successfull", HttpStatusCode.OK);
+            }
+            else if (response.Success == true)
+            {
+                response.GenerateResponse(false, "There was a problem communicating with the server", HttpStatusCode.InternalServerError);
             }
 
             return response;
-        }*/
+        }
     }
 }

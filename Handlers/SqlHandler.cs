@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace DamianGonzalesCSharp.Handlers
+namespace DamianGonzalezCSharp.Handlers
 {
     public class SqlHandler
     {
@@ -23,12 +18,11 @@ namespace DamianGonzalesCSharp.Handlers
             {
                 dataAdapter.SelectCommand = command;
                 dataAdapter.Fill(ds, "DAT");
-                connection.Close();
                 success = true;
             } catch (Exception)
             {
-                connection.Close();
             }
+            connection.Close();
 
             return success;
         }
@@ -51,7 +45,6 @@ namespace DamianGonzalesCSharp.Handlers
 
             return result;
         }
-
         public bool InsertCommand(SqlCommand command)
         {
             bool result = false;

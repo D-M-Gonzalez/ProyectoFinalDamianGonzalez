@@ -1,164 +1,125 @@
 ﻿using DamianGonzalezCSharp.Models;
 using System.Data;
-using System.Data.Common;
 using System.Data.SqlClient;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
 
-namespace DamianGonzalesCSharp.Handlers
+namespace DamianGonzalezCSharp.Handlers
 {
     public class SaleHandler : SqlHandler
     {
-        public Boolean HandleGetSales(DataSet ds, Int32 saleId, string sLike, string order)
+        private static ParameterHandler handler = new ParameterHandler();
+        private Boolean result = false;
+        public Boolean HandleGetSales(DataSet ds, Int32 saleId)
         {
             SqlCommand cmd = new SqlCommand();
-            Boolean success = false;
 
-            if (saleId > 0)
+            handler.CreateParameter("saleId", SqlDbType.BigInt, saleId, cmd);
+            cmd.CommandText = "select * from Venta where Id = @saleId";
+            result = GetCommand(ds, cmd);
+
+            return result;
+        }
+        public Boolean HandleGetSales(DataSet ds, string sLike, string order)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.CommandText = "select * from Venta ";
+
+            handler.CreateParameter("descrip", SqlDbType.Char, sLike, cmd, true);
+            if (sLike != "") cmd.CommandText = cmd.CommandText + " where Comentarios like @descrip";
+
+            if (order != "" && order != null)
             {
-                var parameter = new SqlParameter();
-                parameter.ParameterName = "saleId";
-                parameter.SqlDbType = SqlDbType.BigInt;
-                parameter.Value = saleId;
-
-                cmd.CommandText = "select * from Venta where Id = @saleId";
-                cmd.Parameters.Add(parameter);
-
-            } else
-            {
-                cmd.CommandText = "select * from Venta";
-                if (sLike != "" && sLike != null)
+                string sOrder = "";
+                switch (order)
                 {
-                    var parameter = new SqlParameter();
-                    parameter.ParameterName = "descrip";
-                    parameter.SqlDbType = SqlDbType.Char;
-                    parameter.Value = "%" + sLike + "%";
-
-                    cmd.CommandText = cmd.CommandText + " where Comentarios like @descrip";
-                    cmd.Parameters.Add(parameter);
+                    case "id":
+                        sOrder = "Id";
+                        break;
+                    case "IdUsuario":
+                        sOrder = "IdUsuario";
+                        break;
+                    default:
+                        sOrder = "Comentarios";
+                        break;
                 }
-
-                if (order == null) order = "";
-                order = order.ToLower();
-
-                if (order != "" && order != null)
-                {
-                    string sOrder = "";
-                    switch (order)
-                    {
-                        case "id":
-                            sOrder = "Id";
-                            break;
-                        case "IdUsuario":
-                            sOrder = "IdUsuario";
-                            break;
-                        default:
-                            sOrder = "Comentarios";
-                            break;
-                    }
-
-                    cmd.CommandText = cmd.CommandText + " order by " + sOrder;
-                }
-
+                cmd.CommandText = cmd.CommandText + " order by " + sOrder;
             }
-            
-            success = GetCommand(ds, cmd);
 
-            return success;
+            result = GetCommand(ds, cmd);
+
+            return result;
         }
 
-        public Boolean HandleSaleData(Sale data, Boolean insert)
+        public Boolean HandleCreateSale(Sale data)
         {
-            Boolean success = false;
             SqlCommand createCommand = new SqlCommand();
-            string sData = "";
+            handler.CreateParameter("comments", SqlDbType.Char, data.SaleComments, createCommand);
+            handler.CreateParameter("userId", SqlDbType.BigInt, data.UserId, createCommand);
 
-            if (data.Id != 0)
+            if (data.SaleProducts.Count > 0)
             {
-                var parameter = new SqlParameter();
-                parameter.ParameterName = "id";
-                parameter.SqlDbType = SqlDbType.Char;
-                parameter.Value = data.Id;
-                createCommand.Parameters.Add(parameter);
-            }
-
-            if (data.SaleComments != null)
-            {
-                sData = sData != "" ? sData + " , " : "";
-                var comments = new SqlParameter();
-                comments.ParameterName = "comments";
-                comments.SqlDbType = SqlDbType.Char;
-                comments.Value = data.SaleComments;
-                sData = sData + (insert ? " @comments " : " Comentarios = @comments ");
-                createCommand.Parameters.Add(comments);
-            }
-
-            if (data.UserId != null)
-            {
-                sData = sData != "" ? sData + " , " : "";
-                var userId = new SqlParameter();
-                userId.ParameterName = "userId";
-                userId.SqlDbType = SqlDbType.Char;
-                userId.Value = data.UserId;
-                sData = sData + (insert ? " @userId " : " IdUsuario = @userId ");
-                createCommand.Parameters.Add(userId);
-            }
-
-            if (data.SaleProducts.Count > 0 && data.Id == 0 && insert == true)
-            {
-                createCommand.CommandText = "insert into Venta (Comentarios, IdUsuario ) values ( " + sData + ") ";
+                createCommand.CommandText = "insert into Venta (Comentarios, IdUsuario ) values (@comments,@userId) ";
                 int count = 0;
-
                 foreach (SaleProduct saleProduct in data.SaleProducts)
                 {
                     count++;
-                    if (saleProduct.SaleAmount != 0)
-                    {
-                        var saleAmount = new SqlParameter();
-                        saleAmount.ParameterName = "saleAmount" + count;
-                        saleAmount.SqlDbType = SqlDbType.BigInt;
-                        saleAmount.Value = saleProduct.SaleAmount;
-                        createCommand.Parameters.Add(saleAmount);
-                    }
-
-                    if (saleProduct.ProductId != 0)
-                    {
-                        var productId = new SqlParameter();
-                        productId.ParameterName = "productId" + count;
-                        productId.SqlDbType = SqlDbType.BigInt;
-                        productId.Value = saleProduct.ProductId;
-                        createCommand.Parameters.Add(productId);
-                    }
                     string saleAmountPar = "@saleAmount" + count.ToString();
                     string productIdPar = "@productId" + count.ToString();
+                    handler.CreateParameter(saleAmountPar, SqlDbType.BigInt, data.SaleProducts[count - 1].SaleAmount, createCommand);
+                    handler.CreateParameter(productIdPar, SqlDbType.BigInt, data.SaleProducts[count - 1].ProductId, createCommand);
+
 
                     createCommand.CommandText = createCommand.CommandText + " insert into ProductoVendido (Stock,IdProducto,IdVenta) values (" + saleAmountPar + "," + productIdPar + ",(select MAX(id) from Venta)) update Producto set Stock = Stock - " + saleAmountPar + " where Id = " + productIdPar + " ";
                 }
-
-            } else if (data.Id > 0 && insert == false)
-            {
-                createCommand.CommandText = "update Venta set " + sData + " where Id = @id";
             }
 
-            if (createCommand.CommandText != "" ) success = GenericCommand(createCommand);
+            result = GenericCommand(createCommand);
 
-            return success;
+            return result;
         }
 
-        /*public Boolean HandleDeleteSale(Int32 id)
+        public Boolean HandleUpdateSale(Sale data)
         {
-            Boolean success = false;
+            string updateText = "";
+            SqlCommand updateCommand = new SqlCommand();
+            handler.CreateParameter("Comentarios", SqlDbType.Char, data.SaleComments, updateCommand);
+            handler.CreateParameter("IdUsuario", SqlDbType.Char, data.UserId, updateCommand);
 
-            SqlCommand deleteCommand = new SqlCommand("delete Usuario where Id = @id");
-            var parameter = new SqlParameter();
-            parameter.ParameterName = "id";
-            parameter.SqlDbType = SqlDbType.BigInt;
-            parameter.Value = id;
-            deleteCommand.Parameters.Add(parameter);
+            foreach (SqlParameter par in updateCommand.Parameters)
+            {
+                if (par.SqlValue.ToString() != "Null")
+                {
+                    if (updateText != "") updateText = updateText + ",";
+                    updateText = updateText + " " + par.ParameterName + "=@" + par.ParameterName;
+                }
+            }
 
-            success = GenericCommand(deleteCommand);
+            handler.CreateParameter("id", SqlDbType.BigInt, data.Id, updateCommand);
 
-            return success;
-        }*/
+            updateCommand.CommandText = "update Venta set " + updateText + " where Id = @id";
+            result = GenericCommand(updateCommand);
+
+            return result;
+        }
+
+        public Boolean HandleDeleteSale(Int32 id)
+        {
+            SqlCommand deleteCommand = new SqlCommand("delete Venta where Id = @id");
+            handler.CreateParameter("id", SqlDbType.BigInt, id, deleteCommand);
+
+            result = GenericCommand(deleteCommand);
+
+            return result;
+        }
+
+        public Boolean HandleGetSalesByUserId(DataSet ds, Int32 userId)
+        {
+            SqlCommand cmd = new SqlCommand();
+
+            handler.CreateParameter("saleId", SqlDbType.BigInt, userId, cmd);
+            cmd.CommandText = "select * from Venta where IdUsuario = @saleId";
+            result = GetCommand(ds, cmd);
+
+            return result;
+        }
     }
 }
